@@ -13,7 +13,7 @@ HDRSL(High Dynamic Range Imaging-based Structure Light)
 
 
 <div style="text-align: justify; text-indent: 2em;">
-we release the metallic dataset with HDR problems used in this study. This dataset includes 1700 sets of data from various materials, shapes, standard, and non-standard parts, making it the largest structured light dataset to date.  Click <a href="https://wangh257.github.io/HDRSL/Data_Download.html">here</a>  to download the dataset.
+we release the metallic dataset with HDR-related challenges used in this study. This dataset includes 1700 sets of data covering diverse materials, geometric shapes, standard, and non-standard parts, making it the one of the largest structured light dataset to date.  Click <a href="https://wangh257.github.io/HDRSL/Data_Download.html" target="_blank">here</a>  to download the dataset.
 </div>
 
 <!-- <div style="text-align: center;">
@@ -22,7 +22,7 @@ we release the metallic dataset with HDR problems used in this study. This datas
 </div> -->
 
 ## Experimental results
-### metal dataset 
+<!-- ### metal dataset  -->
 
 
 <!-- <div style="text-align: center;">
@@ -35,7 +35,7 @@ we release the metallic dataset with HDR problems used in this study. This datas
   <p>Fig 3. matal dataset result</p>
 </div> -->
 
-### ceramic dataset 
+<!-- ### ceramic dataset  -->
 
 
 <!-- <div style="text-align: center;">
@@ -48,7 +48,7 @@ we release the metallic dataset with HDR problems used in this study. This datas
   <p>Fig 3. ceramic dataset result</p>
 </div> -->
 
-### standard object 
+<!-- ### standard object  -->
 
 
 <!-- <div style="text-align: center;">

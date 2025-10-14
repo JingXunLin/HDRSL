@@ -7,7 +7,6 @@ import argparse
 
 from torch.utils.data import DataLoader, random_split
 import torch.nn as nn
-from model_unet import ReconstructiveSubNetwork, DiscriminativeSubNetwork, Discrimate_GAN
 from loss import FocalLoss, SSIM, MseDirectionLoss
 from tqdm import tqdm
 
@@ -15,8 +14,6 @@ from model_with_attention import ReconstructiveSubNetwork_CBAMattention, Reconst
 from model_with_attention import ReconstructiveSubNetwork_Chattention, ReconstructiveSubNetwork_Spattention_only_encoder
 from ResUNet import ResUNet
 from unet import UNet, UNet_attention
-from res_net_18_50_101 import Resnet_Unet_18_50_101, Resnet_Unet_18_50_101_attention
-# import unet.unet_model.UNet as UNet
 
 from evaluate import evaluate
 from utils.data_loading import BasicDataset, BasicDataset_High_Reflect
@@ -258,11 +255,7 @@ if __name__ == "__main__":
     device = torch.device(f'cuda:{args.gpu_id}' if torch.cuda.is_available() else 'cpu')
     logging.info(f'Using device {device}')
     # train model 
-    # model = ReconstructiveSubNetwork_Spattention_only_encoder(in_channels=1, out_channels=1)
-    # model = ReconstructiveSubNetwork_Chattention(in_channels=4, out_channels=8)
-    # model = ReconstructiveSubNetwork_Spattention_only_encoder(in_channels=4, out_channels=8)
-    # model = ReconstructiveSubNetwork_CBAMattention(in_channels=4, out_channels=8)
-    # model = ResUNet(in_channels=4, out_channels=8)
+
     model_student = UNet_attention(4, 4, False)
     model_teacher = UNet(4, 4, False)
     model_result = UNet(8, 8, False)

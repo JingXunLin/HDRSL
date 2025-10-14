@@ -126,32 +126,8 @@ class UNet(nn.Module):
         self.outc = torch.utils.checkpoint(self.outc)
 
 
+
 class UNet_attention(UNet):
-    def __init__(self, n_channels, n_classes, bilinear=False):
-        super().__init__(n_channels, n_classes, bilinear)
-        # self.attention2 = SpatialAttention_WH(in_channel=128, inter_channel=64, subsample_rate=4)
-        
-        # self.attention1 = SpatialAttention_WH(in_channel=64, inter_channel=64, subsample_rate=4)
-
-        self.attention1 = ChannelAttention_WH(128, 16)
-
-    def forward(self, x):
-        x1 = self.inc(x)
-        # x1, w_x1 = self.attention1(x1)
-        x2 = self.down1(x1)
-        x2, w_x2 = self.attention1(x2)
-        x3 = self.down2(x2)
-        x4 = self.down3(x3)
-        x5 = self.down4(x4)
-        x = self.up1(x5, x4)
-        x = self.up2(x, x3)
-        x = self.up3(x, x2)
-        x = self.up4(x, x1)
-        logits = self.outc(x)
-        return logits, [x2, x3, x4, x5]
-    
-
-class UNet_WH_attention(UNet):
     def __init__(self, n_channels, n_classes, bilinear=False):
         super().__init__(n_channels, n_classes, bilinear)
         self.inc1 = (DoubleConv(4, 32))
@@ -165,8 +141,6 @@ class UNet_WH_attention(UNet):
         x_light = self.inc2(x_light)
         x1 = torch.cat([x_dark, x_light], dim=1)
         x1, w_x1 = self.attention1(x1)
-        import pdb; pdb.set_trace()
-        # x1 = self.inc(x)
         x2 = self.down1(x1)
         x3 = self.down2(x2)
         x4 = self.down3(x3)

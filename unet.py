@@ -130,13 +130,28 @@ class UNet(nn.Module):
 class UNet_attention(UNet):
     def __init__(self, n_channels, n_classes, bilinear=False):
         super().__init__(n_channels, n_classes, bilinear)
-        self.inc1 = (DoubleConv(4, 32))
-        self.inc2 = (DoubleConv(4, 32))
+        # Support both 4-channel and 8-channel inputs
+        if n_channels == 4:
+            # 4-channel input: split into 2 groups of 2 channels
+            self.inc1 = (DoubleConv(2, 32))
+            self.inc2 = (DoubleConv(2, 32))
+        else:
+            # 8-channel input: split into 2 groups of 4 channels
+            self.inc1 = (DoubleConv(4, 32))
+            self.inc2 = (DoubleConv(4, 32))
         self.attention1 = ChannelAttention_WH(64, 4)
+        self.input_channels = n_channels
 
     def forward(self, x):
-        x_drak = x[:, [0, 2, 4, 6], :, :]
-        x_light = x[:, [1, 3, 5, 7], :, :]
+        if self.input_channels == 4:
+            # 4-channel input: channels [0,1] and [2,3]
+            x_drak = x[:, [0, 2], :, :]
+            x_light = x[:, [1, 3], :, :]
+        else:
+            # 8-channel input: channels [0,2,4,6] and [1,3,5,7]
+            x_drak = x[:, [0, 2, 4, 6], :, :]
+            x_light = x[:, [1, 3, 5, 7], :, :]
+        
         x_dark = self.inc1(x_drak)
         x_light = self.inc2(x_light)
         x1 = torch.cat([x_dark, x_light], dim=1)

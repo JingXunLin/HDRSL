@@ -10,9 +10,8 @@ import torch.nn as nn
 from loss import FocalLoss, SSIM, MseDirectionLoss
 from tqdm import tqdm
 
-from model_with_attention import ReconstructiveSubNetwork_CBAMattention, ReconstructiveSubNetwork_Spattention
-from model_with_attention import ReconstructiveSubNetwork_Chattention, ReconstructiveSubNetwork_Spattention_only_encoder
-from ResUNet import ResUNet
+# Import model architectures
+from ResUNet import ResUNet, ResUNet_attention
 from unet import UNet, UNet_attention
 
 from evaluate import evaluate
@@ -49,26 +48,11 @@ def train_on_device(
  ):
 
     # create dataset
-    dir_img_plat = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/plat/images_GT'
-    dir_mask_plat = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/plat'
-    dir_img_qiu1 = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/qiu_1/images_GT'
-    dir_mask_qiu1 = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/qiu_1'
-    dir_img_qiu2 = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/qiu_2/images_GT'
-    dir_mask_qiu2 = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/qiu_2'
-    dir_img_jieti = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/jieti/images_GT'
-    dir_mask_jieti = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/jieti'
+    # Use local datasets directory
     try:
         metal_dataset = BasicDataset_High_Reflect(args.dir_img, args.dir_mask)
-        dataset_plat = BasicDataset_High_Reflect(dir_img_plat, dir_mask_plat)
-        dataset_qiu1 = BasicDataset_High_Reflect(dir_img_qiu1, dir_mask_qiu1)
-        dataset_qiu2 = BasicDataset_High_Reflect(dir_img_qiu2, dir_mask_qiu2)
-        dataset_jieti = BasicDataset_High_Reflect(dir_img_jieti, dir_mask_jieti)
     except (AssertionError, RuntimeError, IndexError):
         metal_dataset = BasicDataset_High_Reflect(args.dir_img, args.dir_mask)
-        dataset_plat = BasicDataset_High_Reflect(dir_img_plat, dir_mask_plat)
-        dataset_qiu1 = BasicDataset_High_Reflect(dir_img_qiu1, dir_mask_qiu1)
-        dataset_qiu2 = BasicDataset_High_Reflect(dir_img_qiu2, dir_mask_qiu2)
-        dataset_jieti = BasicDataset_High_Reflect(dir_img_jieti, dir_mask_jieti)
     
     n_train = int(len(metal_dataset) * 0.8)
     n_val = int(len(metal_dataset) * 0.1)
@@ -76,7 +60,7 @@ def train_on_device(
     
     train_set, val_set, test_set = random_split(metal_dataset, [n_train, n_val, n_test], generator=torch.Generator().manual_seed(0)) 
 
-    train_set = torch.utils.data.ConcatDataset([train_set, dataset_plat, dataset_qiu1, dataset_qiu2, dataset_jieti])
+    # train_set is already complete, no need to concatenate additional datasets
     logging.info(f'Number of training images: {len(train_set)}')
     logging.info(f'Number of validation images: {len(val_set)}')
     logging.info(f'Number of validation images: {len(test_set)}')
@@ -252,8 +236,17 @@ if __name__ == "__main__":
     
     args = get_args()
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-    device = torch.device(f'cuda:{args.gpu_id}' if torch.cuda.is_available() else 'cpu')
-    logging.info(f'Using device {device}')
+    
+    # Device selection: -1 for CPU, >= 0 for GPU
+    if args.gpu_id == -1:
+        device = torch.device('cpu')
+        logging.info('Using CPU (forced by --gpu_id -1)')
+    elif torch.cuda.is_available():
+        device = torch.device(f'cuda:{args.gpu_id}')
+        logging.info(f'Using GPU: {torch.cuda.get_device_name(args.gpu_id)}')
+    else:
+        device = torch.device('cpu')
+        logging.warning('CUDA not available, using CPU')
     # train model 
 
     model_student = UNet_attention(4, 4, False)
@@ -285,7 +278,17 @@ if __name__ == "__main__":
                         val_percent=args.validation / 100
                         )
         
-    except torch.cuda.OutofMemoryError:
-        logging.error('train_error! please check')
+    except torch.cuda.OutOfMemoryError:
+        logging.error('GPU Out of Memory! Trying to reduce batch size or use CPU.')
+        logging.error('You can also set --gpu_id -1 to use CPU training.')
         torch.cuda.empty_cache()
-        exit(0)
+        exit(1)
+    except RuntimeError as e:
+        if 'CUDA' in str(e):
+            logging.error(f'CUDA Error: {e}')
+            logging.error('Your PyTorch version may not be compatible with your GPU/CUDA version.')
+            logging.error('Try: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118')
+            logging.error('Or use CPU training with --gpu_id -1')
+        else:
+            logging.error(f'Runtime Error: {e}')
+        exit(1)

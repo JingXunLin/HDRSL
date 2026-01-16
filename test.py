@@ -16,13 +16,11 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from glob import glob
 from loss import SSIM
-from model_with_attention import ReconstructiveSubNetwork_CBAMattention, ReconstructiveSubNetwork_Spattention
-from model_with_attention import ReconstructiveSubNetwork_Chattention, ReconstructiveSubNetwork_Spattention_only_encoder
+# Import model architectures
 from utils.data_loading import BasicDataset, BasicDataset_High_Reflect
 from scipy.io import savemat
-from ResUNet import ResUNet
+from ResUNet import ResUNet, ResUNet_attention
 from unet import UNet, UNet_attention
-from res_net_18_50_101 import Resnet_Unet_18_50_101
 from torch.cuda.amp import autocast
 
 
@@ -67,26 +65,11 @@ def test_model(
 ):  
     
     # 1. Create dataset
-    dir_img_plat = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/plat/images_GT'
-    dir_mask_plat = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/plat'
-    dir_img_qiu1 = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/qiu_1/images_GT'
-    dir_mask_qiu1 = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/qiu_1'
-    dir_img_qiu2 = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/qiu_2/images_GT'
-    dir_mask_qiu2 = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/qiu_2'
-    dir_img_jieti = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/jieti/images_GT'
-    dir_mask_jieti = '/home/wangh20/data/structure/metal_dataset/qiu_plat_fenzi_fenmu/jieti'
+    # Use local datasets directory
     try:
         metal_dataset = BasicDataset(args.dir_img, args.dir_mask)
-        dataset_plat = BasicDataset(dir_img_plat, dir_mask_plat)
-        dataset_qiu1 = BasicDataset(dir_img_qiu1, dir_mask_qiu1)
-        dataset_qiu2 = BasicDataset(dir_img_qiu2, dir_mask_qiu2)
-        dataset_jieti = BasicDataset(dir_img_jieti, dir_mask_jieti)
     except (AssertionError, RuntimeError, IndexError):
         metal_dataset = BasicDataset(args.dir_img, args.dir_mask)
-        dataset_plat = BasicDataset(dir_img_plat, dir_mask_plat)
-        dataset_qiu1 = BasicDataset(dir_img_qiu1, dir_mask_qiu1)
-        dataset_qiu2 = BasicDataset(dir_img_qiu2, dir_mask_qiu2)
-        dataset_jieti = BasicDataset(dir_img_jieti, dir_mask_jieti)
 
     # 2. Split into train / validation partitions
     n_train = int(len(metal_dataset) * 0.8)

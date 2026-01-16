@@ -49,10 +49,18 @@ def train_on_device(
 
     # create dataset
     # Use local datasets directory
+    # Select dataset class based on dual_exposure mode
+    if args.dual_exposure:
+        logging.info('Using dual exposure mode (Low + High = 8 channels)')
+        DatasetClass = BasicDataset
+    else:
+        logging.info('Using single exposure mode (Low only = 4 channels)')
+        DatasetClass = BasicDataset_High_Reflect
+    
     try:
-        metal_dataset = BasicDataset_High_Reflect(args.dir_img, args.dir_mask)
+        metal_dataset = DatasetClass(args.dir_img, args.dir_mask)
     except (AssertionError, RuntimeError, IndexError):
-        metal_dataset = BasicDataset_High_Reflect(args.dir_img, args.dir_mask)
+        metal_dataset = DatasetClass(args.dir_img, args.dir_mask)
     
     n_train = int(len(metal_dataset) * 0.8)
     n_val = int(len(metal_dataset) * 0.1)
@@ -119,8 +127,10 @@ def train_on_device(
                 true_masks = batch['mask']
                 imgs_aug = batch['image_aug']
                 # 判断输入是不是灰度图
-                assert imgs.shape[1] == 4, f'Network has been designed to work with 1 channel images, but received {imgs.shape[1]} channels'
-                assert imgs_aug.shape[1] == 4, f'Network has been designed to work with 1 channel images, but received {imgs.shape[1]} channels'
+                expected_img_channels = 4
+                expected_aug_channels = 8 if args.dual_exposure else 4
+                assert imgs.shape[1] == expected_img_channels, f'Expected {expected_img_channels} channels for images, but received {imgs.shape[1]} channels'
+                assert imgs_aug.shape[1] == expected_aug_channels, f'Expected {expected_aug_channels} channels for augmented images, but received {imgs_aug.shape[1]} channels'
                 imgs = imgs.to(device=device, dtype=torch.float32)
                 true_masks = true_masks.to(device=device, dtype=torch.float32)
                 imgs_aug = imgs_aug.to(device=device, dtype=torch.float32)
@@ -230,6 +240,7 @@ def get_args():
     parser.add_argument('--dir_mask', type=str, required=True)
     parser.add_argument('--save_checkpoint_path', type=str, required=True)
     parser.add_argument('--load_checkpoint', type=bool, default=False)
+    parser.add_argument('--dual_exposure', action='store_true', help='Use dual exposure mode (Low+High 8 channels) instead of single exposure (Low only 4 channels)')
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -248,10 +259,19 @@ if __name__ == "__main__":
         device = torch.device('cpu')
         logging.warning('CUDA not available, using CPU')
     # train model 
-
-    model_student = UNet_attention(4, 4, False)
-    model_teacher = UNet(4, 4, False)
-    model_result = UNet(8, 8, False)
+    # Adjust model architecture based on exposure mode
+    if args.dual_exposure:
+        # Dual exposure: 8 input channels -> 4 output, then concat to 12 -> 8 output
+        model_student = UNet_attention(8, 4, False)
+        model_teacher = UNet(4, 4, False)
+        model_result = UNet(12, 8, False)
+        logging.info('Model architecture: Student(8->4), Teacher(4->4), Result(12->8)')
+    else:
+        # Single exposure: 4 input channels -> 4 output, then concat to 8 -> 8 output
+        model_student = UNet_attention(4, 4, False)
+        model_teacher = UNet(4, 4, False)
+        model_result = UNet(8, 8, False)
+        logging.info('Model architecture: Student(4->4), Teacher(4->4), Result(8->8)')
 
     if args.load_checkpoint:
         model_student.load_state_dict(torch.load(os.path.join(args.load_checkpoint, 'student_checkpoint.pth')))

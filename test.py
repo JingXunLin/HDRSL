@@ -65,11 +65,19 @@ def test_model(
 ):  
     
     # 1. Create dataset
-    # Use local datasets directory
+    # Use local datasets directory - must match training dataset class
+    # Select dataset class based on dual_exposure mode
+    if args.dual_exposure:
+        logging.info('Using dual exposure mode (Low + High = 8 channels)')
+        DatasetClass = BasicDataset
+    else:
+        logging.info('Using single exposure mode (Low only = 4 channels)')
+        DatasetClass = BasicDataset_High_Reflect
+    
     try:
-        metal_dataset = BasicDataset(args.dir_img, args.dir_mask)
+        metal_dataset = DatasetClass(args.dir_img, args.dir_mask)
     except (AssertionError, RuntimeError, IndexError):
-        metal_dataset = BasicDataset(args.dir_img, args.dir_mask)
+        metal_dataset = DatasetClass(args.dir_img, args.dir_mask)
 
     # 2. Split into train / validation partitions
     n_train = int(len(metal_dataset) * 0.8)
@@ -177,8 +185,14 @@ def test_model(
 
             # images and images aug
             images_i = images_test[i]
-            images_aug_low_i = images_aug_test[2 * i]
-            images_aug_high_i = images_aug_test[2 * i + 1]
+            # Handle both single exposure (4 ch) and dual exposure (8 ch) modes
+            if args.dual_exposure:
+                # Dual exposure: extract low and high exposure images
+                images_aug_low_i = images_aug_test[2 * i]
+                images_aug_high_i = images_aug_test[2 * i + 1]
+            else:
+                # Single exposure: only low exposure
+                images_aug_i = images_aug_test[i]
             images_rec_i = images_rec[i]
 
             pred_fenzi_i = mask_pred_tensor[2 * i]
@@ -204,8 +218,11 @@ def test_model(
             # save AUG image
             Image.fromarray((images_i * 255).astype('uint8')).save(os.path.join(save_img_dir, name + f'_{i}_ori.bmp'))
             Image.fromarray((images_rec_i * 255).astype('uint8')).save(os.path.join(save_rec_dir, name + f'_{i}_rec.bmp'))
-            Image.fromarray((images_aug_low_i * 255).astype('uint8')).save(os.path.join(save_aug_dir, name + f'_{i}_low.bmp'))
-            Image.fromarray((images_aug_high_i * 255).astype('uint8')).save(os.path.join(save_aug_dir, name + f'_{i}_high.bmp'))
+            if args.dual_exposure:
+                Image.fromarray((images_aug_low_i * 255).astype('uint8')).save(os.path.join(save_aug_dir, name + f'_{i}_low.bmp'))
+                Image.fromarray((images_aug_high_i * 255).astype('uint8')).save(os.path.join(save_aug_dir, name + f'_{i}_high.bmp'))
+            else:
+                Image.fromarray((images_aug_i * 255).astype('uint8')).save(os.path.join(save_aug_dir, name + f'_{i}_aug.bmp'))
 
             # save results
             Image.fromarray((GT_fenzi_i * 255).astype('uint8')).save(os.path.join(save_fenzi_GT_dir, name + f'_{i}_GT.bmp'))
@@ -239,6 +256,7 @@ def get_args():
     parser.add_argument('--dir-mask', type=str, required=True)
     parser.add_argument('--scale', type=float, default=1.0, help='Downscaling factor of the images')
     parser.add_argument('--save-dir', type=str, default='./')
+    parser.add_argument('--dual-exposure', action='store_true', help='Use dual exposure mode (Low+High 8 channels) instead of single exposure (Low only 4 channels)')
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -247,17 +265,24 @@ if __name__ == '__main__':
     device = torch.device(f'cuda:{args.gpu_id}' if torch.cuda.is_available() else 'cpu')
     logging.info(f'Using device {device}')
 
-    model_student = UNet(8, 4, False)
-    # model_student = UNet_attention(8, 4, False)
-    model_result = UNet(12, 8, False)
-    # import pdb; pdb.set_trace()
+    # Model architecture must match training mode
+    if args.dual_exposure:
+        # Dual exposure: 8 input channels -> 4 output, then concat to 12 -> 8 output
+        model_student = UNet_attention(8, 4, False)
+        model_result = UNet(12, 8, False)
+        logging.info('Model architecture: Student(8->4), Result(12->8)')
+    else:
+        # Single exposure: 4 input channels -> 4 output, then concat to 8 -> 8 output
+        model_student = UNet_attention(4, 4, False)
+        model_result = UNet(8, 8, False)
+        logging.info('Model architecture: Student(4->4), Result(8->8)')
 
     model_student.load_state_dict(torch.load(os.path.join(args.load, 'student.pth'), map_location=device))
     model_result.load_state_dict(torch.load(os.path.join(args.load, 'result.pth'), map_location=device))
     logging.info(f'Model loaded from {args.load}')
     
-    # model_student.to(device=device)
-    # model_result.to(device=device)
+    model_student.to(device=device)
+    model_result.to(device=device)
     try:
         test_model(
             model_student=model_student,

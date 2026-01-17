@@ -80,9 +80,10 @@ This repository supports two training modes:
 ### Verify Environment
 
 ```
-python verify_setup.py 
-python debug_dataset.py 
-python debug_train.py 
+python scripts/check_cuda.py 
+python scripts/verify_setup.py 
+python scripts/debug_dataset.py 
+python scripts/debug_train.py 
 ```
 
 ### Training

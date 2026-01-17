@@ -66,8 +66,9 @@ HDRSL/
     ├── images_4/          # High exposure images (Student input for dual mode)
     │   ├── 000001/
     │   └── ...
-    ├── fenzi_GT_mat_2/      # Numerator Ground Truth (MAT files)
-    └── fenmu_GT_mat_2/      # Denominator Ground Truth (MAT files)
+    ├── fenzi_GT_mat_2/    # Numerator Ground Truth (MAT files)
+    ├── fenmu_GT_mat_2/    # Denominator Ground Truth (MAT files)
+    └── Phases_GT_mat/     # Phase Ground Truth (MAT files, optional)
 ```
 
 ## Usage

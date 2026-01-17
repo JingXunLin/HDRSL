@@ -53,8 +53,8 @@ class BasicDataset(Dataset):
         self.images_aug_low_dir = images_dir.replace('images_GT', 'images_low')
         self.images_aug_high_dir = images_dir.replace('images_GT', 'images_4')
         self.mask_dir = mask_dir
-        self.mask_dir_fenzi = os.path.join(mask_dir, 'fenzi_GT_mat')
-        self.mask_dir_fenmu = os.path.join(mask_dir, 'fenmu_GT_mat')
+        self.mask_dir_fenzi = os.path.join(mask_dir, 'fenzi_GT_mat_2')
+        self.mask_dir_fenmu = os.path.join(mask_dir, 'fenmu_GT_mat_2')
         assert 0 < scale <= 1, 'Scale must be between 0 and 1'
         self.scale = scale
         self.mask_suffix = mask_suffix

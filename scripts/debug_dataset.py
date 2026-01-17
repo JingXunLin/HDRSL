@@ -22,11 +22,9 @@ def check_dataset_structure():
         "images_GT": "原始GT图像",
         "images_low": "低曝光图像",
         "images_4": "高曝光图像",
-        "fenzi_GT_mat": "正弦分量 (旧)",
-        "fenmu_GT_mat": "余弦分量 (旧)",
-        "fenzi_GT_mat_2": "正弦分量 (新)",
-        "fenmu_GT_mat_2": "余弦分量 (新)",
-        "images": "其他图像"
+        "fenzi_GT_mat_2": "正弦分量 (Numerator)",
+        "fenmu_GT_mat_2": "余弦分量 (Denominator)",
+        "Phases_GT_mat": "相位GT (可选)",
     }
     
     existing_dirs = os.listdir(dataset_dir) if os.path.exists(dataset_dir) else []
@@ -76,36 +74,28 @@ def check_single_sample():
     # 检查mat文件
     print(f"\n正弦分量文件 (fenzi):")
     for i in [1, 2, 3, 4]:
-        # 检查两个可能的位置
+        # 检查fenzi_GT_mat_2目录
         mat_name = f"{sample_name}-{i}.mat"
-        path1 = os.path.join("datasets/fenzi_GT_mat", mat_name)
-        path2 = os.path.join("datasets/fenzi_GT_mat_2", mat_name)
+        path = os.path.join("datasets/fenzi_GT_mat_2", mat_name)
         
-        exists1 = os.path.exists(path1)
-        exists2 = os.path.exists(path2)
+        exists = os.path.exists(path)
         
-        if exists1:
-            print(f"  ✓ {mat_name:15s} (在 fenzi_GT_mat/)")
-        elif exists2:
+        if exists:
             print(f"  ✓ {mat_name:15s} (在 fenzi_GT_mat_2/)")
         else:
-            print(f"  ✗ {mat_name:15s} (两处都不存在)")
+            print(f"  ✗ {mat_name:15s} (不存在)")
     
     print(f"\n余弦分量文件 (fenmu):")
     for i in [1, 2, 3, 4]:
         mat_name = f"{sample_name}-{i}.mat"
-        path1 = os.path.join("datasets/fenmu_GT_mat", mat_name)
-        path2 = os.path.join("datasets/fenmu_GT_mat_2", mat_name)
+        path = os.path.join("datasets/fenmu_GT_mat_2", mat_name)
         
-        exists1 = os.path.exists(path1)
-        exists2 = os.path.exists(path2)
+        exists = os.path.exists(path)
         
-        if exists1:
-            print(f"  ✓ {mat_name:15s} (在 fenmu_GT_mat/)")
-        elif exists2:
+        if exists:
             print(f"  ✓ {mat_name:15s} (在 fenmu_GT_mat_2/)")
         else:
-            print(f"  ✗ {mat_name:15s} (两处都不存在)")
+            print(f"  ✗ {mat_name:15s} (不存在)")
 
 def test_dataloader():
     """测试数据加载器"""

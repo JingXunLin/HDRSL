@@ -84,12 +84,8 @@ def check_dataset():
         "images_low", 
         "images_4",
         "fenzi_GT_mat_2",
-        "fenmu_GT_mat_2"
-    ]
-    
-    if not os.path.exists(dataset_dir):
-        print(f"✗ 數據集目錄不存在: {dataset_dir}")
-        print("請將數據集下載到 datasets/ 目錄")
+        "fenmu_GT_mat_2",
+        "Phases_GT_mat"
         return False
     
     missing_dirs = []

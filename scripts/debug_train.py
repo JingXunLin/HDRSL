@@ -3,11 +3,16 @@
 """
 import torch
 import os
+import sys
+
+# Add project root to python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'  # 同步CUDA操作以获得准确的错误位置
 
 from torch.utils.data import DataLoader, random_split
-from unet import UNet, UNet_attention
-from loss import SSIM, MseDirectionLoss
+from models.unet import UNet, UNet_attention
+from models.loss import SSIM, MseDirectionLoss
 from utils.data_loading import BasicDataset_High_Reflect
 
 print("="*60)

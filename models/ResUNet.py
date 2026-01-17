@@ -9,7 +9,7 @@ import torch.nn as nn
 from torch import cat as cat
 import torch
 import torch.nn.functional as F
-from Attention_module import CBAMBlock, SpatialAttention_WH, ChannelAttention_WH
+from .Attention_module import CBAMBlock, SpatialAttention_WH, ChannelAttention_WH
 
 ' Branch0 block '
 class Branch0(nn.Module):

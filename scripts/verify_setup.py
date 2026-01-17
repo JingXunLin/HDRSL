@@ -5,6 +5,9 @@ HDRSL Setup Verification Script
 import sys
 import os
 
+# Add project root to python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 def check_imports():
     """检查所有必要的导入"""
     print("=" * 60)
@@ -46,20 +49,20 @@ def check_models():
     print("\n" + "=" * 60)
     print("檢查模型定義...")
     print("=" * 60)
-    
+
     try:
-        from unet import UNet, UNet_attention
+        from models.unet import UNet, UNet_attention
         print("✓ UNet 模型導入成功")
-        
-        from ResUNet import ResUNet, ResUNet_attention
+
+        from models.ResUNet import ResUNet, ResUNet_attention
         print("✓ ResUNet 模型導入成功")
-        
-        from Attention_module import CBAMBlock, ChannelAttention_WH, SpatialAttention_WH
+
+        from models.Attention_module import CBAMBlock, ChannelAttention_WH, SpatialAttention_WH
         print("✓ 注意力模塊導入成功")
-        
-        from loss import SSIM, MseDirectionLoss
+
+        from models.loss import SSIM, MseDirectionLoss
         print("✓ 損失函數導入成功")
-        
+
         from utils.data_loading import BasicDataset, BasicDataset_High_Reflect
         print("✓ 數據加載器導入成功")
         

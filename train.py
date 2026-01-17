@@ -7,12 +7,12 @@ import argparse
 
 from torch.utils.data import DataLoader, random_split
 import torch.nn as nn
-from loss import FocalLoss, SSIM, MseDirectionLoss
+from models.loss import FocalLoss, SSIM, MseDirectionLoss
 from tqdm import tqdm
 
 # Import model architectures
-from ResUNet import ResUNet, ResUNet_attention
-from unet import UNet, UNet_attention
+from models.ResUNet import ResUNet, ResUNet_attention
+from models.unet import UNet, UNet_attention
 
 from evaluate import evaluate
 from utils.data_loading import BasicDataset, BasicDataset_High_Reflect

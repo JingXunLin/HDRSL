@@ -3,6 +3,9 @@
 """
 import os
 import sys
+# Add project root to python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import torch
 import numpy as np
 from utils.data_loading import BasicDataset, BasicDataset_High_Reflect

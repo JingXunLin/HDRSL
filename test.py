@@ -15,12 +15,12 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 from glob import glob
-from loss import SSIM
+from models.loss import SSIM
 # Import model architectures
 from utils.data_loading import BasicDataset, BasicDataset_High_Reflect
 from scipy.io import savemat
-from ResUNet import ResUNet, ResUNet_attention
-from unet import UNet, UNet_attention
+from models.ResUNet import ResUNet, ResUNet_attention
+from models.unet import UNet, UNet_attention
 from torch.cuda.amp import autocast
 
 
